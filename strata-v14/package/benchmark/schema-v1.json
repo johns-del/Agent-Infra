@@ -1,0 +1,566 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orvix-workload/1",
+  "title": "Orvix workload graph v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "graph_id",
+    "user_id",
+    "session_id",
+    "source",
+    "split",
+    "block_size",
+    "time_origin",
+    "rounds",
+    "nodes",
+    "links",
+    "quality",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "orvix-workload/1"
+    },
+    "graph_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "enum": [
+        "H",
+        "R"
+      ]
+    },
+    "split": {
+      "enum": [
+        "dev",
+        "test",
+        "smoke",
+        "calibration"
+      ]
+    },
+    "block_size": {
+      "const": 64
+    },
+    "time_origin": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/round"
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/link"
+      }
+    },
+    "quality": {
+      "$ref": "#/$defs/quality"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nullableNumber": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "nullableTokenCount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "round": {
+      "type": "object",
+      "required": [
+        "id",
+        "submit_s",
+        "end_s",
+        "terminal",
+        "entry_nodes",
+        "exit_nodes",
+        "source_message_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "submit_s": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "end_s": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "terminal": {
+          "enum": [
+            "finish",
+            "ask",
+            "unknown"
+          ]
+        },
+        "entry_nodes": {
+          "$ref": "#/$defs/stringList"
+        },
+        "exit_nodes": {
+          "$ref": "#/$defs/stringList"
+        },
+        "source_message_ids": {
+          "$ref": "#/$defs/stringList"
+        },
+        "conversation_alignment": {
+          "type": "object",
+          "required": ["status", "main_eligible", "human_reviewed", "evidence"],
+          "properties": {
+            "status": {"enum": ["before_drift", "drift_start", "post_drift", "review_required"]},
+            "main_eligible": {"type": "boolean"},
+            "human_reviewed": {"type": "boolean"},
+            "evidence": {"$ref": "#/$defs/stringList"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "block": {
+      "type": "object",
+      "required": [
+        "hash_id",
+        "content_id",
+        "length",
+        "offset"
+      ],
+      "properties": {
+        "hash_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "content_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "modelAttrs": {
+      "type": "object",
+      "required": [
+        "input_tokens",
+        "visible_output_tokens",
+        "reasoning_tokens",
+        "output_tokens",
+        "input_blocks",
+        "output_blocks",
+        "reuse_spans",
+        "cached_tokens",
+        "observations",
+        "model_id"
+      ],
+      "properties": {
+        "input_tokens": {
+          "$ref": "#/$defs/nullableTokenCount"
+        },
+        "visible_output_tokens": {
+          "$ref": "#/$defs/nullableTokenCount"
+        },
+        "reasoning_tokens": {
+          "$ref": "#/$defs/nullableTokenCount"
+        },
+        "output_tokens": {
+          "$ref": "#/$defs/nullableTokenCount"
+        },
+        "input_blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/block"
+          }
+        },
+        "output_blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/block"
+          }
+        },
+        "reuse_spans": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "cached_tokens": {
+          "$ref": "#/$defs/nullableTokenCount"
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "model_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "round_id",
+        "scope",
+        "deps",
+        "purpose",
+        "role",
+        "start_s",
+        "end_s",
+        "duration_s",
+        "attrs",
+        "evidence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "model",
+            "tool",
+            "think"
+          ]
+        },
+        "round_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deps": {
+          "$ref": "#/$defs/stringList"
+        },
+        "purpose": {
+          "enum": [
+            "foreground",
+            "background_compress",
+            "background_distill",
+            "subagent",
+            "human_wait",
+            "unknown"
+          ]
+        },
+        "role": {
+          "type": "string"
+        },
+        "start_s": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "end_s": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "duration_s": {
+          "$ref": "#/$defs/nullableNumber"
+        },
+        "attrs": {
+          "type": "object"
+        },
+        "evidence": {
+          "$ref": "#/$defs/stringList"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "model"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attrs": {
+                "$ref": "#/$defs/modelAttrs"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "tool"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attrs": {
+                "type": "object",
+                "required": [
+                  "tool_type"
+                ],
+                "properties": {
+                  "tool_type": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "think"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "attrs": {
+                "type": "object",
+                "required": [
+                  "censored"
+                ],
+                "properties": {
+                  "censored": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": [
+        "parent_scope",
+        "child_scope",
+        "dispatch_node",
+        "join_node",
+        "evidence",
+        "validated"
+      ],
+      "properties": {
+        "parent_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "child_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dispatch_node": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "join_node": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "$ref": "#/$defs/stringList"
+        },
+        "validated": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality": {
+      "type": "object",
+      "required": [
+        "replay_ready",
+        "blockers",
+        "calibration_ids"
+      ],
+      "properties": {
+        "replay_ready": {
+          "type": "boolean"
+        },
+        "blockers": {
+          "$ref": "#/$defs/stringList"
+        },
+        "calibration_ids": {
+          "$ref": "#/$defs/stringList"
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenanceEntry": {
+      "type": "object",
+      "required": [
+        "origin",
+        "evidence",
+        "method",
+        "calibration"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "measured",
+            "reconstructed",
+            "imputed"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "method": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "calibration": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/provenanceEntry"
+      }
+    },
+    "arrival": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "graph_id",
+        "round_id",
+        "source_message_id",
+        "saved_at_local",
+        "offset_s",
+        "arrival_kind",
+        "timestamp_origin",
+        "observed_header_origin",
+        "method",
+        "provenance"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "graph_id": {
+          "type": "string"
+        },
+        "round_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_message_id": {
+          "type": "string"
+        },
+        "saved_at_local": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+        },
+        "offset_s": {
+          "type": "number"
+        },
+        "arrival_kind": {
+          "enum": [
+            "round",
+            "intervention"
+          ]
+        },
+        "timestamp_origin": {
+          "const": "reconstructed"
+        },
+        "observed_header_origin": {
+          "const": "measured"
+        },
+        "method": {
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
